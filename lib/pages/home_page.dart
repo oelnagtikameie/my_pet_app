@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_unity_widget/flutter_unity_widget.dart';
+// import 'package:flutter_unity_widget/flutter_unity_widget.dart'; //
 import 'records.dart';     // 记录页
 import 'dress_up.dart';    // 装扮页
 import 'chat_page.dart';   // 聊天页
@@ -13,22 +13,33 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  UnityWidgetController? _unityWidgetController;
-  final int _heartCount = 105; // 模拟从数据库或Unity获取的数据
+  // UnityWidgetController? _unityWidgetController; // 暂时注释
+  final int _heartCount = 105; 
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Stack(
         children: [
-          // 1. 底层：Unity 场景
+          // 1. 底层：暂时用背景图或颜色块代替 Unity 场景
+          Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Colors.lightBlueAccent, Colors.lightGreenAccent],
+              ),
+            ),
+            child: const Center(
+              child: Text("3D 场景占位\n(Unity 导出后恢复)", textAlign: TextAlign.center),
+            ),
+          ),
+          /* 以后恢复 Unity 时用这段：
           UnityWidget(
             onUnityCreated: (controller) => _unityWidgetController = controller,
-            onUnityMessage: (message) {
-              // 处理从 Unity 传来的消息（如点击了小动物）
-              print("Unity Message: $message");
-            },
+            onUnityMessage: (message) => debugPrint("Unity Message: $message"),
           ),
+          */
 
           // 2. 上层：Flutter UI 按钮
           _buildTopUI(),
@@ -55,8 +66,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // 四个角落和侧边的方形按钮
-  // 修改后的按钮区域
   Widget _buildSideButtons() {
     return Stack(
       children: [
@@ -81,9 +90,7 @@ class _HomePageState extends State<HomePage> {
           bottom: 100, left: 20,
           child: Column(
             children: [
-              _squareButton("个性化", "assets/images/personal_btn.png", () {
-                // 这里暂时跳到 RecordsPage 或其他你准备好的页面
-              }),
+              _squareButton("个性化", "assets/images/personal_btn.png", () {}),
               const SizedBox(height: 10),
               _squareButton("聊天", "assets/images/chat_btn.png", () {
                 Navigator.push(context, MaterialPageRoute(builder: (c) => const ChatPage()));
@@ -102,7 +109,7 @@ class _HomePageState extends State<HomePage> {
               }),
               const SizedBox(height: 10),
               _squareButton("小游戏", "assets/images/game_btn.png", () {
-                 _showGameDialog(); // 弹出选择跑酷或探索的对话框
+                 _showGameDialog(); 
               }),
             ],
           ),
@@ -111,20 +118,22 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-void _showGameDialog() {
+  void _showGameDialog() {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text("选择游戏模式"),
         content: Row(
+          mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            _squareButton("跑酷", "assets/images/game_btn.png", () {
-              _unityWidgetController?.postMessage("SceneManager", "LoadScene", "Parkour");
+            _squareButton("跑酷", "assets/images/rungame_btn.png", () {
+              debugPrint("跳转跑酷场景");
               Navigator.pop(context);
             }),
-            _squareButton("探索", "assets/images/game_btn.png", () {
-              _unityWidgetController?.postMessage("SceneManager", "LoadScene", "Explore");
+            const SizedBox(width: 10),
+            _squareButton("探索", "assets/images/travelgame_btn.png", () {
+              debugPrint("跳转探索场景");
               Navigator.pop(context);
             }),
           ],
@@ -133,35 +142,19 @@ void _showGameDialog() {
     );
   }
 
-  // 通用的方形图片按钮模板
-  // 优化后的方形图片按钮模板：现在第二个参数接受 imagePath (String)
-// 唯一的、正确的方形图片按钮模板
+  // 唯一的、正确的纯图片方形按钮模板
   Widget _squareButton(String label, String imagePath, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(
+      child: SizedBox( // 使用 SizedBox 固定大小
         width: 75, height: 75,
-        decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.8), 
-          border: Border.all(color: Colors.brown, width: 2),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Image.asset(
-                  imagePath, 
-                  fit: BoxFit.contain,
-                  // 这里的 errorBuilder 非常重要，能防止图片路径写错时程序崩溃
-                  errorBuilder: (context, error, stackTrace) => const Icon(Icons.broken_image),
-                ),
-              ),
-            ),
-            Text(label, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.brown)),
-          ],
+        child: Image.asset(
+          imagePath, 
+          fit: BoxFit.fill, // 关键点：让图片拉伸填满 SizedBox
+          // 这里虽然去掉了 Text，但 label 可以作为语义化属性保留
+          semanticLabel: label, 
+          // 路径写错时的占位图
+          errorBuilder: (context, error, stackTrace) => const Center(child: Icon(Icons.broken_image, size: 40, color: Colors.brown)),
         ),
       ),
     );
